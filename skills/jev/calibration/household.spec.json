@@ -1,0 +1,27 @@
+{
+  "name": "Household messages",
+  "description": "66 texts and emails a household gets (bills, family, spam, appointments, deliveries, school), 12 of them deliberately tricky: phishing dressed as a bill, urgent news written casually, negated deadlines.",
+  "context": "Messages received by a family household (two parents, two kids in elementary school).",
+  "questions": {
+    "category": {
+      "type": "choice",
+      "instructions": "What kind of message is `item`?",
+      "criteria": {
+        "bills": "A legitimate charge, payment request, balance, or statement from a company, landlord, utility, or service the household uses",
+        "family": "A personal message from a relative or friend, whatever it is about",
+        "spam": "Unsolicited marketing, a scam, or phishing, including fake notices that imitate real companies or suspicious links",
+        "appointment": "Scheduling, confirming, or reminding about an appointment or service visit (doctor, dentist, vet, repair, haircut, DMV)",
+        "delivery": "Package, order, or food delivery status from a retailer or carrier",
+        "school": "A message from the kids' school, teacher, district, or PTA"
+      }
+    },
+    "action_today": {
+      "type": "noul",
+      "instructions": "Someone in the household needs to do something today because of `item`.",
+      "criteria": {
+        "true": "A deadline today or tomorrow, a same-day reply or pickup requested, or something goes wrong if it's ignored today",
+        "false": "Informational, a later deadline, no action needed, or spam that should simply be ignored"
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "description": "Flag supplier invoices for fraud signs (guide page 5). Do sums and date checks in code first — Jev is weak at maths and dates. Nothing is paid or rejected on Jev's word alone.",
+  "context_hint": "item should be {invoice_text, supplier: {usual_bank_details, usual_amounts, last_invoice_date}, precomputed_checks}",
+  "questions": {
+    "risk": {
+      "type": "score",
+      "instructions": "How risky does the invoice in `item` look?",
+      "criteria": ["Looks normal", "One small oddity", "Several warning signs", "Strong signs of fraud"]
+    },
+    "bank_change_pressure": {
+      "type": "noul",
+      "instructions": "The invoice in `item` combines changed bank details with pressure to pay fast."
+    },
+    "action": {
+      "type": "choice",
+      "instructions": "What should we do with the invoice in `item`?",
+      "criteria": {
+        "pay_as_normal": null,
+        "hold_and_call": "Hold it and phone the supplier on a number we already know",
+        "reject": null
+      }
+    }
+  }
+}

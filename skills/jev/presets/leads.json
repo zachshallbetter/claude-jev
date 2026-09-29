@@ -1,0 +1,28 @@
+{
+  "description": "Sort an inbox export by lead quality (guide page 5).",
+  "context_hint": "pass --context with one line on what your business does",
+  "questions": {
+    "lead_strength": {
+      "type": "score",
+      "instructions": "How strong a sales lead is `item` for the business described in `about_us`?",
+      "criteria": [
+        "Not a lead at all: spam, vendors, newsletters, job seekers, support, existing clients",
+        "Cold: vague interest, tiny budget, or poor fit",
+        "Warm: a real need that fits, but no budget or timeline yet",
+        "Hot: a clear need that fits, plus at least two of a stated budget, a stated timeline, or a decision maker writing"
+      ]
+    },
+    "kind": {
+      "type": "choice",
+      "instructions": "What kind of email is `item`?",
+      "criteria": {
+        "new_lead": null, "existing_client": null, "vendor_pitch": null, "spam": null,
+        "job_seeker": null, "newsletter": null, "support": null
+      }
+    },
+    "needs_personal_reply": {
+      "type": "noul",
+      "instructions": "`item` needs a personal reply from the team."
+    }
+  }
+}

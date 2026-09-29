@@ -1,0 +1,31 @@
+{
+  "description": "Triage support tickets by urgency, team and churn risk (guide page 5).",
+  "context_hint": "include the customer's plan and tenure in each item when you have them",
+  "questions": {
+    "urgency": {
+      "type": "choice",
+      "instructions": "How soon does the ticket in `item` need an answer?",
+      "criteria": {"today": null, "this_week": null, "no_rush": null}
+    },
+    "team": {
+      "type": "choice",
+      "instructions": "Which team should take the ticket in `item`?",
+      "criteria": {
+        "technical": "Bugs, outages, errors",
+        "billing": "Charges, refunds, invoices",
+        "sales": "Upgrades, pricing",
+        "success": "Onboarding, training"
+      }
+    },
+    "churn_risk": {
+      "type": "score",
+      "instructions": "How likely is this customer to leave?",
+      "criteria": [
+        "No sign of leaving",
+        "Mild frustration",
+        "Openly looking at other options",
+        "Has set a deadline to leave"
+      ]
+    }
+  }
+}
