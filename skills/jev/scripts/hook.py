@@ -9,7 +9,7 @@ from pathlib import Path
 mode = sys.argv[1] if len(sys.argv) > 1 else ""
 switch = {"prompt": "router", "permission": "perms"}.get(mode)
 try:
-    home = Path(os.environ.get("JEV_HOME") or Path.home() / ".claude" / "jev")
+    home = Path(os.environ.get("JEV_HOME") or Path(os.environ.get("CLAUDE_CONFIG_DIR") or Path.home() / ".claude") / "jev")
     on = bool(json.loads((home / "state.json").read_text()).get(switch))
 except Exception:
     on = False

@@ -253,6 +253,7 @@ class TestSortAndInstall(Base):
         self.assertEqual(rc, 2)
         self.assertEqual(Fake.requests, [])
 
+    @mock.patch.object(jev, "PLUGIN_ROOT", None)   # the user-level skill (~/.claude/skills/jev)
     def test_install_idempotent_and_uninstall_clean(self):
         (self.claude / "settings.json").write_text(json.dumps({"permissions": {"allow": ["Bash(npm:*)"]}}))
         first = jev.install()
@@ -268,6 +269,35 @@ class TestSortAndInstall(Base):
         s = json.loads((self.claude / "settings.json").read_text())
         self.assertNotIn("hooks", s)
         self.assertFalse((self.claude / "agents" / "jev-haiku.md").exists())
+
+    def test_install_as_plugin_writes_nothing_into_settings(self):
+        root = Path(tempfile.mkdtemp(prefix="jev-plugin-"))
+        (root / "hooks").mkdir()
+        (root / "hooks" / "hooks.json").write_text(json.dumps(
+            {"hooks": {"UserPromptSubmit": [], "PermissionRequest": []}}))
+        (root / "agents").mkdir()
+        for m in jev.AGENT_DESC:
+            (root / "agents" / f"jev-{m}.md").write_text(jev.agent_markdown(m))
+        (self.claude / "settings.json").write_text(json.dumps({"permissions": {"allow": []}}))
+        with mock.patch.object(jev, "PLUGIN_ROOT", root):
+            jev.install()
+            self.assertNotIn("hooks", json.loads((self.claude / "settings.json").read_text()))
+            self.assertFalse((self.claude / "agents").exists())
+            out = io.StringIO()
+            with redirect_stdout(out):
+                jev.main(["doctor"])
+            self.assertIn("hook PermissionRequest (plugin hooks.json)", out.getvalue())
+            self.assertNotIn("still has the pre-plugin", out.getvalue())
+            # a leftover user-level install would make every hook run twice: doctor says so
+            (self.claude / "settings.json").write_text(json.dumps({"hooks": {"UserPromptSubmit": [
+                {"hooks": [{"type": "command", "command": "python3 -S /x/jev/scripts/hook.py prompt"}]}]}}))
+            out = io.StringIO()
+            with redirect_stdout(out):
+                jev.main(["doctor"])
+            self.assertIn("still has the pre-plugin jev hooks (UserPromptSubmit)", out.getvalue())
+            self.assertIn("jev:jev-haiku", jev._agent_ref("haiku"))   # plugin agents are namespaced
+        with mock.patch.object(jev, "PLUGIN_ROOT", None):
+            self.assertEqual(jev._agent_ref("haiku"), "`jev-haiku`")
 
     def test_calibrate_grades_and_bins(self):
         def respond(req):
