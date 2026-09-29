@@ -13,7 +13,7 @@ Credentials (first hit wins; the key is never printed or logged):
   4. macOS Keychain item `jev-openrouter`, then `jev-typesafe`
      (store with: security add-generic-password -U -a "$USER" -s jev-openrouter -w)
 
-State lives in $JEV_HOME (default ~/.claude/jev): state.json (toggles) and usage.jsonl
+State lives in $JEV_HOME (default $CLAUDE_CONFIG_DIR/jev, i.e. ~/.claude/jev): state.json (toggles) and usage.jsonl
 (one line per call: latency, tokens, cost — never the content sent).
 
 This file is also the library the titan household agent imports (scripts/jev_client.py
@@ -49,13 +49,14 @@ REVIEW_THRESHOLD = 0.75
 KEYCHAIN_SERVICES = (("jev-openrouter", "openrouter"), ("jev-typesafe", "typesafe"))
 RETRY_STATUSES = {429, 500, 502, 503, 524, 529}
 
-JEV_HOME = Path(os.environ.get("JEV_HOME", Path.home() / ".claude" / "jev"))
+# Claude Code's config dir (CLAUDE_CONFIG_DIR when set, else ~/.claude); state lives beside it.
+CLAUDE_HOME = Path(os.environ.get("CLAUDE_CONFIG_DIR") or Path.home() / ".claude")
+JEV_HOME = Path(os.environ.get("JEV_HOME") or CLAUDE_HOME / "jev")
 SKILL_DIR = Path(__file__).resolve().parent.parent
 # Installed as a Claude Code plugin (skills/jev inside a plugin root): the plugin ships the
 # hooks (hooks/hooks.json) and the helper agents (agents/) itself, so install/uninstall must
 # not write them into ~/.claude, and doctor checks the plugin's copies instead.
 PLUGIN_ROOT = SKILL_DIR.parent.parent if (SKILL_DIR.parent.parent / ".claude-plugin" / "plugin.json").exists() else None
-CLAUDE_HOME = Path.home() / ".claude"
 
 DEFAULT_STATE: dict[str, Any] = {
     "router": False,        # size every prompt and suggest a pinned helper agent
