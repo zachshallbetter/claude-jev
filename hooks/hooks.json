@@ -1,0 +1,20 @@
+{
+  "description": "Jev prompt router and permission gate. Both are OFF until switched on with /jev on and /jev perms on; while off each hook reads one small state file and exits.",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "python3 -S \"${CLAUDE_PLUGIN_ROOT}/skills/jev/scripts/hook.py\" prompt", "timeout": 6 }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "python3 -S \"${CLAUDE_PLUGIN_ROOT}/skills/jev/scripts/hook.py\" permission", "timeout": 12 }
+        ]
+      }
+    ]
+  }
+}

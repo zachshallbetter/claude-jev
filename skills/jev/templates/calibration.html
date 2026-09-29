@@ -1,0 +1,380 @@
+<title>Is Jev Calibrated?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --ground: #f2f4f3; --surface: #fcfcfb; --ink: #16201b; --ink-2: #4f5a54; --ink-3: #75807a;
+  --rule: #d8dedb; --rule-2: #e7ebe9; --accent: #1f5f57; --accent-soft: #dcebe7;
+  --s1: #2a78d6; --s2: #eb6834; --good: #0ca30c; --warn: #fab219; --warn-ink: #7a5300;
+  --warn-soft: #fdf1d6; --crit: #d03b3b; --crit-soft: #fbe3e1; --review-zone: rgba(250, 178, 25, .10);
+  --display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #121614; --surface: #1c201e; --ink: #eef2ef; --ink-2: #b3bdb7; --ink-3: #8a958f;
+    --rule: #323a36; --rule-2: #272d2a; --accent: #6fc2b3; --accent-soft: #1f3833;
+    --s1: #3987e5; --s2: #d95926; --warn-ink: #fab219; --warn-soft: #3a2f14; --crit-soft: #3d1f1e;
+    --review-zone: rgba(250, 178, 25, .08);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #121614; --surface: #1c201e; --ink: #eef2ef; --ink-2: #b3bdb7; --ink-3: #8a958f;
+  --rule: #323a36; --rule-2: #272d2a; --accent: #6fc2b3; --accent-soft: #1f3833;
+  --s1: #3987e5; --s2: #d95926; --warn-ink: #fab219; --warn-soft: #3a2f14; --crit-soft: #3d1f1e;
+  --review-zone: rgba(250, 178, 25, .08);
+}
+* { box-sizing: border-box; }
+body { background: var(--ground); color: var(--ink); font: 15px/1.55 var(--body); }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 20px; padding-block: 32px 64px; display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 700; margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+h1 { font-size: clamp(2rem, 5vw, 3.1rem); line-height: 1.05; }
+h2 { font-size: 1.3rem; }
+h3 { font-size: .8rem; font-family: var(--body); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+p { margin: 0; max-width: 68ch; }
+.mono, .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--ink-2); }
+header { display: grid; gap: 12px; }
+.eyebrow { font: 500 .78rem/1 var(--mono); color: var(--accent); letter-spacing: .04em; }
+.verdict { font-size: 1.05rem; color: var(--ink-2); }
+.verdict strong { color: var(--ink); font-weight: 600; }
+.stats { display: flex; flex-wrap: wrap; gap: 10px 28px; padding-top: 6px; border-top: 1px solid var(--rule); }
+.stat { display: grid; gap: 2px; padding-top: 10px; }
+.stat b { font: 500 1.35rem/1.1 var(--mono); font-variant-numeric: tabular-nums; }
+.stat span { font-size: .8rem; color: var(--ink-3); }
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 20px; display: grid; gap: 14px; min-width: 0; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 20px; }
+@media (max-width: 860px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: .85rem; color: var(--ink-2); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+.legend .x { color: var(--crit); font-style: normal; font-weight: 700; margin-right: 6px; }
+svg { display: block; width: 100%; height: auto; overflow: visible; }
+svg text { fill: var(--ink-3); font: 11px var(--mono); }
+.axis line, .grid line { stroke: var(--rule-2); }
+.axis .base { stroke: var(--rule); }
+.diag { stroke: var(--ink-3); stroke-dasharray: 4 4; }
+.dot { stroke: var(--surface); stroke-width: 2; cursor: default; }
+.dot:focus-visible, .pt:focus-visible { outline: none; stroke: var(--ink); stroke-width: 2.5; }
+.caption { font-size: .85rem; color: var(--ink-3); }
+/* threshold */
+.slider-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 14px; }
+input[type=range] { width: 100%; accent-color: var(--accent); height: 28px; }
+input[type=range]:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+.tval { font: 500 1.6rem/1 var(--mono); color: var(--accent); min-width: 3.2ch; text-align: right; }
+.outcome { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.outcome div { border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; background: var(--ground); }
+.outcome b { font: 500 1.3rem/1.1 var(--mono); }
+.outcome span { font-size: .78rem; color: var(--ink-2); }
+.outcome .bad { background: var(--crit-soft); }
+.outcome .bad b { color: var(--crit); }
+.outcome .rev { background: var(--warn-soft); }
+.outcome .rev b { color: var(--warn-ink); }
+.presets { display: flex; flex-wrap: wrap; gap: 8px; }
+button { font: 500 .82rem var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--rule); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button[aria-pressed=true] { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.hint { font-size: .85rem; color: var(--ink-2); border-left: 3px solid var(--accent); padding-left: 10px; }
+.pt { stroke: var(--surface); stroke-width: 1.5; }
+.pt.wrong { stroke: var(--crit); stroke-width: 2.4; fill: none; stroke-linecap: round; }
+.thr line { stroke: var(--accent); stroke-width: 2; }
+.thr text { fill: var(--accent); font-weight: 500; }
+.zone { fill: var(--review-zone); }
+/* board */
+.board-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px; }
+.board { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; align-items: start; }
+.col { display: grid; gap: 8px; }
+.col h3 { display: flex; justify-content: space-between; padding: 0 2px 4px; border-bottom: 2px solid var(--ink); color: var(--ink); }
+.col h3 span { font-family: var(--mono); color: var(--ink-3); letter-spacing: 0; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 10px 11px; display: grid; gap: 7px; font-size: .86rem; }
+.card.is-wrong { border-color: var(--crit); box-shadow: inset 3px 0 0 var(--crit); }
+.card.is-review { background: var(--warn-soft); }
+.card p { color: var(--ink); }
+.meta { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.chip { font: 500 .72rem/1 var(--body); padding: 4px 7px; border-radius: 999px; border: 1px solid var(--rule); color: var(--ink-2); white-space: nowrap; }
+.chip.today { border-color: var(--s2); color: var(--ink); }
+.chip.today::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--s2); margin-right: 5px; }
+.chip.wrong { background: var(--crit); border-color: var(--crit); color: #fff; }
+.chip.review { background: var(--warn); border-color: var(--warn); color: #3a2800; }
+.chip.tag { border-style: dashed; }
+.meter { display: grid; grid-template-columns: 64px 1fr 38px; gap: 6px; align-items: center; font: .7rem var(--mono); color: var(--ink-3); }
+.meter .bar { height: 5px; border-radius: 3px; background: var(--rule-2); position: relative; overflow: hidden; }
+.meter .bar i { position: absolute; inset: 0 auto 0 0; border-radius: 3px; }
+.meter .bar b { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--accent); }
+.empty { font-size: .82rem; color: var(--ink-3); padding: 6px 2px; }
+/* table */
+details { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; }
+summary { cursor: pointer; padding: 14px 18px; font-weight: 600; }
+summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 10px; }
+.tbl { overflow-x: auto; padding: 0 12px 12px; }
+table { border-collapse: collapse; width: 100%; font-size: .82rem; min-width: 720px; }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--rule-2); vertical-align: top; }
+th { font-weight: 600; color: var(--ink-2); position: sticky; top: 0; background: var(--surface); }
+td.num { white-space: nowrap; }
+.x-cell { color: var(--crit); font-weight: 600; }
+#tip { position: fixed; z-index: 10; pointer-events: none; max-width: 320px; background: var(--ink); color: var(--surface); font-size: .8rem; line-height: 1.4; padding: 8px 10px; border-radius: 6px; box-shadow: 0 6px 20px rgba(0,0,0,.18); }
+#tip .mono { opacity: .8; }
+footer { font-size: .8rem; color: var(--ink-3); display: grid; gap: 4px; }
+@media (prefers-reduced-motion: no-preference) { .card, .pt { transition: background .2s, opacity .2s; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow" id="eyebrow"></div>
+    <h1>Is Jev Calibrated?</h1>
+    <p class="verdict" id="verdict"></p>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <div class="grid2">
+    <section class="panel" aria-labelledby="rel-h">
+      <div><h2 id="rel-h">Confidence vs. how often it was right</h2>
+        <p class="caption">Each dot is a confidence band; its size is how many answers fell in it. On the dashed line, "90% sure" means right 90% of the time. Below the line, Jev is overconfident.</p></div>
+      <div class="legend" id="rel-legend"></div>
+      <div id="rel"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="thr-h">
+      <div><h2 id="thr-h">Where should the review line go?</h2>
+        <p class="caption">Answers below the line go to a person (or Claude); answers above it are acted on automatically.</p></div>
+      <div class="slider-row">
+        <input type="range" id="thr" min="0.40" max="0.99" step="0.01" value="0.75" aria-describedby="thr-h">
+        <output class="tval" id="thr-out" for="thr">0.75</output>
+      </div>
+      <div class="outcome" aria-live="polite">
+        <div><b class="num" id="o-auto"></b><span>answers handled automatically</span></div>
+        <div class="rev"><b class="num" id="o-rev"></b><span id="o-rev-l">sent to review</span></div>
+        <div class="bad"><b class="num" id="o-bad"></b><span>mistakes let through</span></div>
+      </div>
+      <div class="presets" id="presets"></div>
+      <p class="hint" id="hint"></p>
+    </section>
+  </div>
+
+  <section class="panel" aria-labelledby="strip-h">
+    <div><h2 id="strip-h">Every answer, by confidence</h2>
+      <p class="caption">Hover or focus a mark to read the message. The shaded band left of the line is the review pile at the current threshold.</p></div>
+    <div class="legend" id="strip-legend"></div>
+    <div id="strip"></div>
+  </section>
+
+  <section aria-labelledby="board-h" style="display:grid;gap:14px">
+    <div class="board-head">
+      <div><h2 id="board-h">The triage board</h2>
+        <p class="caption">Each item sits in the column Jev chose. Red: Jev was wrong. Amber: below the review line, so a person would check it.</p></div>
+      <div class="presets" role="group" aria-label="Filter cards" id="filters"></div>
+    </div>
+    <div class="board" id="board"></div>
+  </section>
+
+  <details>
+    <summary>All answers as a table</summary>
+    <div class="tbl"><table id="table"></table></div>
+  </details>
+
+  <footer id="foot"></footer>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+const CAL = /*__CAL_DATA__*/null;
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const pct = (x) => (x * 100).toFixed(0) + "%";
+  const SVGNS = "http://www.w3.org/2000/svg";
+  const Q = CAL.questions, keys = Object.keys(Q);
+  const LABEL = { category: "Category", action_today: "Action today" };
+  const label = (k) => LABEL[k] || k.replace(/_/g, " ");
+  const SERIES = keys.map((k, i) => `var(--s${(i % 2) + 1})`);
+  const choiceKey = keys.find((k) => Q[k].type === "choice");
+  const noulKey = keys.find((k) => Q[k].type === "noul");
+  const items = CAL.items.filter((it) => !it.error);
+  const answers = [];
+  items.forEach((it) => keys.forEach((k, qi) => { if (it.answers[k]) answers.push({ it, k, qi, ...it.answers[k] }); }));
+  const m = CAL.meta;
+  let thr = +(CAL.threshold || 0.75), filter = "all";
+  try { const v = parseFloat(localStorage.getItem("jevcal-thr")); if (v >= 0.4 && v <= 0.99) thr = v; } catch (e) {}
+
+  // ---------- header ----------
+  $("eyebrow").textContent = `${m.name.toUpperCase()} · ${m.model} via ${m.provider} · ${m.run_at}`;
+  const wrongN = answers.filter((a) => !a.correct).length;
+  const hiWrong = answers.filter((a) => !a.correct && a.sure >= 0.8).length;
+  const worstEce = Math.max(...keys.map((k) => CAL.stats[k].ece));
+  const word = worstEce < 0.05 ? "Yes." : worstEce < 0.1 ? "Mostly." : worstEce < 0.2 ? "Only roughly." : "No.";
+  $("verdict").innerHTML = `${word} Across <strong>${answers.length} answers</strong> about <strong>${items.length} ${esc(m.unit || "items")}</strong>, Jev was wrong <strong>${wrongN}</strong> times, and ${hiWrong === 0 ? "<strong>never</strong> while at least 80% sure." : `<strong>${hiWrong}</strong> of those ${hiWrong === 1 ? "miss was" : "misses were"} at 80%+ confidence.`} ${esc(m.description)}`;
+  const stats = keys.map((k) => [pct(CAL.stats[k].accuracy), `${label(k)} accuracy`])
+    .concat(keys.map((k) => [CAL.stats[k].ece.toFixed(3), `${label(k)} calibration error (ECE)`]))
+    .concat([[`${m.p50_ms} ms`, "median response"], [`$${m.cost_usd.toFixed(4)}`, `for all ${m.items} messages`]]);
+  $("stats").innerHTML = stats.map(([b, s]) => `<div class="stat"><b>${b}</b><span>${s}</span></div>`).join("");
+  if (CAL.by_tag && Object.keys(CAL.by_tag).length > 1) {
+    const rows = Object.entries(CAL.by_tag).map(([tag, qs]) => keys.filter((k) => qs[k]).map((k) =>
+      `<div class="stat"><b>${pct(qs[k].accuracy)}</b><span>${label(k)} on <em>${esc(tag)}</em> rows (${qs[k].n})${qs[k].confident_wrong ? `, ${qs[k].confident_wrong} confidently wrong` : ""}</span></div>`).join("")).join("");
+    $("stats").insertAdjacentHTML("afterend", `<div class="stats" aria-label="Accuracy by label source">${rows}</div>`);
+  }
+
+  // ---------- tooltip ----------
+  const tip = $("tip");
+  function showTip(html, ev) {
+    tip.innerHTML = html; tip.hidden = false;
+    const r = ev.target.getBoundingClientRect ? ev.target.getBoundingClientRect() : null;
+    const x = ev.clientX ?? (r ? r.left + r.width / 2 : 0), y = ev.clientY ?? (r ? r.top : 0);
+    const w = tip.offsetWidth, h = tip.offsetHeight;
+    tip.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, x + 12)) + "px";
+    tip.style.top = (y - h - 12 < 8 ? y + 16 : y - h - 12) + "px";
+  }
+  const hideTip = () => { tip.hidden = true; };
+  function bindTip(el, html) {
+    el.addEventListener("pointermove", (e) => showTip(html, e));
+    el.addEventListener("pointerleave", hideTip);
+    el.addEventListener("focus", (e) => { const r = el.getBoundingClientRect(); showTip(html, { clientX: r.left + r.width / 2, clientY: r.top, target: el }); });
+    el.addEventListener("blur", hideTip);
+  }
+  const svgEl = (tag, attrs, parent) => { const e = document.createElementNS(SVGNS, tag); for (const a in attrs) e.setAttribute(a, attrs[a]); if (parent) parent.appendChild(e); return e; };
+
+  // ---------- legends ----------
+  $("rel-legend").innerHTML = keys.map((k, i) => `<span><i style="background:${SERIES[i]}"></i>${label(k)}</span>`).join("");
+  $("strip-legend").innerHTML = keys.map((k, i) => `<span><i style="background:${SERIES[i]}"></i>${label(k)}: right</span>`).join("") + `<span><em class="x">✕</em>wrong</span>`;
+
+  // ---------- reliability chart ----------
+  (function drawRel() {
+    const W = 520, H = 360, L = 46, R = 16, T = 12, B = 40, X0 = 0.4;
+    const sx = (v) => L + (v - X0) / (1 - X0) * (W - L - R), sy = (v) => T + (1 - v) * (H - T - B);
+    const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Reliability chart: accuracy by confidence band for each question" });
+    const g = svgEl("g", { class: "grid" }, svg);
+    [0, .2, .4, .6, .8, 1].forEach((v) => { svgEl("line", { x1: L, x2: W - R, y1: sy(v), y2: sy(v) }, g); svgEl("text", { x: L - 8, y: sy(v) + 4, "text-anchor": "end" }, svg).textContent = pct(v); });
+    [.4, .5, .6, .7, .8, .9, 1].forEach((v) => { svgEl("line", { x1: sx(v), x2: sx(v), y1: sy(0), y2: sy(0) + 5, class: "base" }, g); svgEl("text", { x: sx(v), y: H - B + 18, "text-anchor": "middle" }, svg).textContent = v.toFixed(1); });
+    svgEl("line", { x1: sx(X0), x2: W - R, y1: sy(0), y2: sy(0), class: "base", stroke: "var(--rule)" }, svg);
+    svgEl("line", { x1: sx(X0), y1: sy(X0), x2: sx(1), y2: sy(1), class: "diag" }, svg);
+    svgEl("text", { x: sx(0.965), y: sy(0.965) + 18, "text-anchor": "end" }, svg).textContent = "perfectly calibrated";
+    svgEl("text", { x: (L + W - R) / 2, y: H - 4, "text-anchor": "middle" }, svg).textContent = "Jev's confidence";
+    const yl = svgEl("text", { x: 12, y: (T + H - B) / 2, "text-anchor": "middle", transform: `rotate(-90 12 ${(T + H - B) / 2})` }, svg); yl.textContent = "share right";
+    keys.forEach((k, qi) => {
+      CAL.stats[k].bins.forEach((b) => {
+        const r = Math.max(4.5, Math.min(15, 3 + Math.sqrt(b.n) * 2));
+        const c = svgEl("circle", { cx: sx(Math.max(X0, b.conf)), cy: sy(b.acc), r, fill: SERIES[qi], class: "dot", tabindex: 0, "aria-label": `${label(k)}: confidence ${b.conf.toFixed(2)}, ${b.n} answers, ${pct(b.acc)} right` }, svg);
+        bindTip(c, `<b>${label(k)}</b><br><span class="mono">confidence ${b.lo.toFixed(2)}–${b.hi.toFixed(2)} (avg ${b.conf.toFixed(2)})</span><br>${b.n} answer${b.n > 1 ? "s" : ""} · ${pct(b.acc)} right`);
+      });
+    });
+    $("rel").appendChild(svg);
+  })();
+
+  // ---------- strip plot ----------
+  let stripThr;
+  (function drawStrip() {
+    const W = 1060, rowH = 70, L = 118, R = 16, T = 10, B = 34, X0 = 0.4, H = T + rowH * keys.length + B;
+    const sx = (v) => L + (Math.max(X0, v) - X0) / (1 - X0) * (W - L - R);
+    const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Every answer placed by Jev's confidence; wrong answers marked with a cross" });
+    const zone = svgEl("rect", { class: "zone", x: sx(X0), y: T, height: rowH * keys.length, width: 0 }, svg);
+    const g = svgEl("g", { class: "grid" }, svg);
+    [.4, .5, .6, .7, .8, .9, 1].forEach((v) => { svgEl("line", { x1: sx(v), x2: sx(v), y1: T, y2: T + rowH * keys.length }, g); svgEl("text", { x: sx(v), y: H - B + 18, "text-anchor": "middle" }, svg).textContent = v.toFixed(1); });
+    svgEl("text", { x: (L + W - R) / 2, y: H - 2, "text-anchor": "middle" }, svg).textContent = "Jev's confidence in its answer";
+    keys.forEach((k, qi) => {
+      const cy = T + rowH * qi + rowH / 2;
+      svgEl("line", { x1: L, x2: W - R, y1: T + rowH * (qi + 1), y2: T + rowH * (qi + 1) }, g);
+      const t = svgEl("text", { x: L - 12, y: cy + 4, "text-anchor": "end" }, svg); t.textContent = label(k); t.style.fill = "var(--ink-2)"; t.style.fontFamily = "var(--body)"; t.style.fontSize = "13px";
+      answers.filter((a) => a.k === k).forEach((a, i) => {
+        const jitter = ((i * 37) % 23 - 11) * 2.1;
+        const x = sx(a.sure), y = cy + jitter;
+        const tipHtml = `<b>${a.correct ? "Right" : "Wrong"}</b> · ${label(k)} · <span class="mono">sure ${a.sure.toFixed(2)}</span><br>${esc(a.it.text)}<br><span class="mono">Jev: ${esc(String(a.pred))}${a.correct ? "" : ` · truth: ${esc(String(a.truth))}`}</span>`;
+        let el;
+        if (a.correct) {
+          el = svgEl("circle", { cx: x, cy: y, r: 4.5, fill: SERIES[qi], class: "pt", tabindex: 0, "aria-label": `${label(k)} right at ${a.sure.toFixed(2)}: ${a.it.text}` }, svg);
+        } else {
+          el = svgEl("g", { tabindex: 0, class: "pt wrong", "aria-label": `${label(k)} WRONG at ${a.sure.toFixed(2)}: ${a.it.text}` }, svg);
+          svgEl("rect", { x: x - 9, y: y - 9, width: 18, height: 18, fill: "transparent", stroke: "none" }, el);
+          svgEl("path", { d: `M${x - 6},${y - 6}L${x + 6},${y + 6}M${x + 6},${y - 6}L${x - 6},${y + 6}`, class: "pt wrong" }, el);
+        }
+        bindTip(el, tipHtml);
+      });
+    });
+    const tl = svgEl("g", { class: "thr" }, svg);
+    const line = svgEl("line", { y1: T - 4, y2: T + rowH * keys.length }, tl);
+    const lab = svgEl("text", { y: T + rowH * keys.length + 16, "text-anchor": "middle" }, tl);
+    stripThr = (t) => { const x = sx(t); line.setAttribute("x1", x); line.setAttribute("x2", x); lab.setAttribute("x", x); lab.textContent = ""; zone.setAttribute("width", Math.max(0, x - sx(X0))); };
+    $("strip").appendChild(svg);
+  })();
+
+  // ---------- threshold ----------
+  function outcomes(t) {
+    const auto = answers.filter((a) => a.sure >= t);
+    return { auto: auto.length, bad: auto.filter((a) => !a.correct).length, rev: answers.length - auto.length,
+             revWrong: answers.filter((a) => a.sure < t && !a.correct).length };
+  }
+  const zeroMiss = (() => { for (let t = 0.4; t <= 0.995; t += 0.01) { if (outcomes(+t.toFixed(2)).bad === 0) return +t.toFixed(2); } return 0.99; })();
+  const setThrV = (+(CAL.threshold || 0.75)).toFixed(2);
+  const presets = [["0.60", "Guide default"], [setThrV, "Your setting"], [zeroMiss.toFixed(2), "No misses let through"]]
+    .filter((p, i, all) => all.findIndex((q) => q[0] === p[0]) === i);
+  $("presets").innerHTML = presets.map(([v, l]) => `<button type="button" data-t="${v}">${l} <span class="mono">${v}</span></button>`).join("");
+  $("presets").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) setThr(parseFloat(b.dataset.t)); });
+
+  function setThr(t) {
+    thr = Math.min(0.99, Math.max(0.4, t));
+    $("thr").value = thr.toFixed(2); $("thr-out").textContent = thr.toFixed(2);
+    try { localStorage.setItem("jevcal-thr", thr.toFixed(2)); } catch (e) {}
+    const o = outcomes(thr);
+    $("o-auto").textContent = `${o.auto}/${answers.length}`;
+    $("o-rev").textContent = o.rev; $("o-rev-l").textContent = `sent to review (${o.revWrong} were wrong)`;
+    $("o-bad").textContent = o.bad;
+    const missed = answers.filter((a) => a.sure >= thr && !a.correct);
+    $("hint").innerHTML = o.bad === 0
+      ? `At <span class="mono">${thr.toFixed(2)}</span> every mistake lands in review, at the cost of checking ${o.rev} of ${answers.length} answers by hand.`
+      : `At <span class="mono">${thr.toFixed(2)}</span>, ${o.bad} mistake${o.bad > 1 ? "s get" : " gets"} through, e.g. "${esc(missed[0].it.text.slice(0, 70))}…" (${label(missed[0].k).toLowerCase()} at ${missed[0].sure.toFixed(2)}).`;
+    document.querySelectorAll("#presets button").forEach((b) => b.setAttribute("aria-pressed", String(Math.abs(parseFloat(b.dataset.t) - thr) < 0.005)));
+    stripThr(thr);
+    renderBoard();
+  }
+  $("thr").addEventListener("input", (e) => setThr(parseFloat(e.target.value)));
+
+  // ---------- board ----------
+  const FILTERS = [["all", "All"], ["review", "Review pile"], ["wrong", "Mistakes"], ["tricky", "Tricky ones"]];
+  $("filters").innerHTML = FILTERS.map(([v, l]) => `<button type="button" data-f="${v}" aria-pressed="${v === filter}">${l}</button>`).join("");
+  $("filters").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; filter = b.dataset.f;
+    document.querySelectorAll("#filters button").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.f === filter))); renderBoard(); });
+  const cols = choiceKey ? Q[choiceKey].options : ["all"];
+  function meter(k, a) {
+    const qi = keys.indexOf(k);
+    return `<div class="meter"><span>${label(k).toLowerCase()}</span><span class="bar"><i style="width:${(a.sure * 100).toFixed(0)}%;background:${SERIES[qi]}"></i><b style="left:${(thr * 100).toFixed(0)}%"></b></span><span>${a.sure.toFixed(2)}</span></div>`;
+  }
+  function renderBoard() {
+    const html = cols.map((c) => {
+      const inCol = items.filter((it) => (choiceKey ? it.answers[choiceKey]?.pred === c : true)).map((it) => {
+        const as = keys.map((k) => it.answers[k]).filter(Boolean);
+        return { it, wrong: as.some((a) => !a.correct), review: as.some((a) => a.sure < thr), minSure: Math.min(...as.map((a) => a.sure)) };
+      }).filter((x) => filter === "all" || (filter === "review" && x.review) || (filter === "wrong" && x.wrong) || (filter === "tricky" && x.it.tags.includes("tricky")))
+        .sort((a, b) => (b.wrong - a.wrong) || (b.review - a.review) || (a.minSure - b.minSure));
+      const cards = inCol.map(({ it, wrong, review }) => {
+        const ca = it.answers[choiceKey], na = it.answers[noulKey];
+        const chips = [];
+        if (na && na.pred) chips.push(`<span class="chip today">Today · ${na.p.toFixed(2)}</span>`);
+        if (wrong) {
+          const bits = keys.filter((k) => it.answers[k] && !it.answers[k].correct).map((k) => k === choiceKey ? `actually ${esc(it.answers[k].truth)}` : (it.answers[k].truth ? "actually needs action today" : "actually no action today"));
+          chips.push(`<span class="chip wrong">✕ Wrong: ${bits.join("; ")}</span>`);
+        }
+        if (review) chips.push(`<span class="chip review">⚑ Review</span>`);
+        it.tags.forEach((t) => chips.push(`<span class="chip tag">${esc(t)}</span>`));
+        return `<article class="card${wrong ? " is-wrong" : ""}${review ? " is-review" : ""}"><p>${esc(it.text)}</p>${keys.filter((k) => it.answers[k]).map((k) => meter(k, it.answers[k])).join("")}${chips.length ? `<div class="meta">${chips.join("")}</div>` : ""}</article>`;
+      }).join("");
+      return `<div class="col"><h3>${esc(c)} <span>${inCol.length}</span></h3>${cards || `<div class="empty">Nothing here with this filter.</div>`}</div>`;
+    }).join("");
+    $("board").innerHTML = html;
+  }
+
+  // ---------- table ----------
+  (function table() {
+    const head = `<thead><tr><th>Message</th>${keys.map((k) => `<th>${label(k)}: Jev</th><th>Truth</th><th>Sure</th>`).join("")}</tr></thead>`;
+    const rows = items.map((it) => `<tr><td>${esc(it.text)}${it.tags.length ? ` <span class="muted">(${esc(it.tags.join(", "))})</span>` : ""}</td>${keys.map((k) => { const a = it.answers[k]; if (!a) return "<td></td><td></td><td></td>";
+      const pv = Q[k].type === "noul" ? `${a.pred ? "yes" : "no"} (${a.p.toFixed(2)})` : esc(a.pred);
+      const tv = Q[k].type === "noul" ? (a.truth ? "yes" : "no") : esc(a.truth);
+      return `<td class="${a.correct ? "" : "x-cell"}">${a.correct ? "" : "✕ "}${pv}</td><td>${tv}</td><td class="num">${a.sure.toFixed(2)}</td>`; }).join("")}</tr>`).join("");
+    $("table").innerHTML = head + `<tbody>${rows}</tbody>`;
+  })();
+
+  $("foot").innerHTML = `<span>Generated by <span class="mono">jev.py calibrate</span> (the /jev skill). Rerun with <span class="mono">python3 jev.py calibrate household --yes --html report.html</span>.</span><span>"Sure" is Jev's confidence in its own answer: the reported confidence for a choice, max(p, 1−p) for a yes/no. ECE is the size-weighted gap between confidence and accuracy across bands (0 is perfect). Ground truth was written by hand and is itself a judgment for the tricky messages.</span>`;
+  setThr(thr);
+})();
+</script>

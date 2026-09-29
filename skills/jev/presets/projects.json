@@ -1,0 +1,27 @@
+{
+  "description": "Sort code-project folders by kind (feed it project_facts.py output with --text-field text). Dates, owners and emptiness come from git and the filesystem, not from Jev.",
+  "context_hint": "run scripts/project_facts.py first; use --redact --max-chars 600 --keep-fields",
+  "questions": {
+    "kind": {
+      "type": "choice",
+      "instructions": "What kind of folder is described in `item`?",
+      "criteria": {
+        "app": "An end-user application, website, game or interactive demo with a UI",
+        "tool": "A CLI, server, service, pipeline, runtime or utility that does work for its operator or for other software",
+        "library": "A reusable package, framework or SDK meant to be imported by other code",
+        "docs": "Writing rather than working code: documentation, specs, research papers, strategy or reference material",
+        "container": "A holding folder for several separate projects, worktrees, assets, exports or archives rather than one project",
+        "empty": "Nothing meaningful inside: no entries, or only placeholders or config",
+        "insufficient_information": "The text says too little to tell what the folder is"
+      }
+    }
+  },
+  "min_chars": 60,
+  "min_chars_note": "Measured on real evidence only: package description, README and the Contents (file-type) line; thin_ignore drops the scaffolding lines. Below 60 characters there is nothing to judge but the name, so the folder goes to review.",
+  "thin_ignore": [
+    "^Folder: .*$",
+    "^Top-level entries \\(excluding hidden\\): \\d+$",
+    "^README: none$",
+    "^Contents: none$"
+  ]
+}

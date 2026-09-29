@@ -1,0 +1,66 @@
+{"id": "b1", "text": "PG&E: Your autopay failed. Payment of $142.18 is due tomorrow to avoid a late fee.", "truth": {"category": "bills", "action_today": true}, "tags": []}
+{"id": "b2", "text": "Comcast: Your monthly statement is ready. $89.12 will autopay on Oct 14.", "truth": {"category": "bills", "action_today": false}, "tags": []}
+{"id": "b3", "text": "City of Oakland Water: Your quarterly bill of $211.40 is due Oct 30. Pay online at oaklandwater.gov.", "truth": {"category": "bills", "action_today": false}, "tags": []}
+{"id": "b4", "text": "Chase: Your credit card minimum payment of $35 is due today. Reply PAY to pay from checking.", "truth": {"category": "bills", "action_today": true}, "tags": []}
+{"id": "b5", "text": "State Farm: Your auto insurance renews on Nov 1. New premium $612 for 6 months. No action needed if you're on autopay.", "truth": {"category": "bills", "action_today": false}, "tags": []}
+{"id": "b6", "text": "Verizon: Payment of $78.40 received. Thank you!", "truth": {"category": "bills", "action_today": false}, "tags": []}
+{"id": "b7", "text": "Dr. Lee Dental billing: You have an outstanding balance of $45 from your Aug 12 visit. Statement enclosed.", "truth": {"category": "bills", "action_today": false}, "tags": []}
+{"id": "b8", "text": "Parkview Property Management: October rent of $2,400 is due today. Late fees apply after 5pm.", "truth": {"category": "bills", "action_today": true}, "tags": []}
+{"id": "b9", "text": "Spotify: Your Premium plan price changes to $12.99/month starting next billing cycle.", "truth": {"category": "bills", "action_today": false}, "tags": []}
+{"id": "f1", "text": "Mom: dinner Sunday at 6? Bring the salad bowl if you still have it.", "truth": {"category": "family", "action_today": false}, "tags": []}
+{"id": "f2", "text": "Grandma: can you call me this weekend? Nothing urgent, just miss you.", "truth": {"category": "family", "action_today": false}, "tags": []}
+{"id": "f3", "text": "Jake: flight lands at 4:10 today, can you still pick me up at SFO?", "truth": {"category": "family", "action_today": true}, "tags": []}
+{"id": "f4", "text": "Aunt Rita: sending photos from the reunion, the one of you and the dog is my favorite", "truth": {"category": "family", "action_today": false}, "tags": []}
+{"id": "f5", "text": "Dad: your mom's birthday is Thursday, want to go in on a gift together?", "truth": {"category": "family", "action_today": false}, "tags": []}
+{"id": "f6", "text": "Sis: locked out of the house, are you home in the next hour?? spare key?", "truth": {"category": "family", "action_today": true}, "tags": []}
+{"id": "f7", "text": "Cousin Mia: we're thinking of visiting in December, would that work for you guys?", "truth": {"category": "family", "action_today": false}, "tags": []}
+{"id": "f8", "text": "Mom: Dad's surgery got moved to this afternoon, can you come to Kaiser by 2?", "truth": {"category": "family", "action_today": true}, "tags": []}
+{"id": "f9", "text": "Ben: congrats on the new job!! drinks next week?", "truth": {"category": "family", "action_today": false}, "tags": []}
+{"id": "s1", "text": "Congrats! You were selected for a $1000 Walmart gift card. Claim now: wlmrt-rewards.co", "truth": {"category": "spam", "action_today": false}, "tags": []}
+{"id": "s2", "text": "Get 10,000 Instagram followers for $9.99!!! Limited time", "truth": {"category": "spam", "action_today": false}, "tags": []}
+{"id": "s3", "text": "Hot singles in your area are waiting to chat", "truth": {"category": "spam", "action_today": false}, "tags": []}
+{"id": "s4", "text": "Your car's extended warranty is about to expire. Call 1-800-555-0199 now to renew.", "truth": {"category": "spam", "action_today": false}, "tags": []}
+{"id": "s5", "text": "Earn $5,000/week from home! No experience needed. Reply YES to start.", "truth": {"category": "spam", "action_today": false}, "tags": []}
+{"id": "s6", "text": "Flash sale: 70% off all mattresses this weekend only at DreamyBeds", "truth": {"category": "spam", "action_today": false}, "tags": []}
+{"id": "s7", "text": "You have (1) unclaimed crypto reward. Verify your wallet to receive 0.5 BTC", "truth": {"category": "spam", "action_today": false}, "tags": []}
+{"id": "s8", "text": "Last chance! Your cart is waiting - 20% off with code COMEBACK", "truth": {"category": "spam", "action_today": false}, "tags": []}
+{"id": "s9", "text": "Loan pre-approved for $25,000 at 1.9% APR. No credit check. Apply today!", "truth": {"category": "spam", "action_today": false}, "tags": []}
+{"id": "a1", "text": "Bright Smile Dental: Confirm your cleaning on Thursday at 10am by replying Y today.", "truth": {"category": "appointment", "action_today": true}, "tags": []}
+{"id": "a2", "text": "Kaiser: Reminder of your appointment with Dr. Nguyen on Oct 21 at 3:15pm.", "truth": {"category": "appointment", "action_today": false}, "tags": []}
+{"id": "a3", "text": "Supercuts: Your haircut is booked for Saturday at 11am. Reply C to cancel.", "truth": {"category": "appointment", "action_today": false}, "tags": []}
+{"id": "a4", "text": "Bay Plumbing: Your technician will arrive today between 1-3pm. Please make sure someone is home.", "truth": {"category": "appointment", "action_today": true}, "tags": []}
+{"id": "a5", "text": "Lakeside Vet: Biscuit is due for her annual vaccines. Book a visit in the next month.", "truth": {"category": "appointment", "action_today": false}, "tags": []}
+{"id": "a6", "text": "DMV: Your appointment is tomorrow at 8:30am. Bring your license and proof of insurance.", "truth": {"category": "appointment", "action_today": true}, "tags": []}
+{"id": "a7", "text": "Dr. Patel's office: We need to reschedule your Monday appointment. Please call us back today.", "truth": {"category": "appointment", "action_today": true}, "tags": []}
+{"id": "a8", "text": "ClearView Optometry: Your eye exam is scheduled for Nov 3 at 9am.", "truth": {"category": "appointment", "action_today": false}, "tags": []}
+{"id": "a9", "text": "Tesla Service: Your service visit on Oct 18 is confirmed. Drop off by 8am.", "truth": {"category": "appointment", "action_today": false}, "tags": []}
+{"id": "d1", "text": "Amazon: Your package was delivered to your front porch.", "truth": {"category": "delivery", "action_today": false}, "tags": []}
+{"id": "d2", "text": "UPS: Your package requires a signature. Delivery attempt today by 7pm.", "truth": {"category": "delivery", "action_today": true}, "tags": []}
+{"id": "d3", "text": "FedEx: Your shipment is delayed due to weather. New estimated delivery: Monday.", "truth": {"category": "delivery", "action_today": false}, "tags": []}
+{"id": "d4", "text": "USPS: Delivery attempted, no one home. Pick up at the post office by Friday.", "truth": {"category": "delivery", "action_today": false}, "tags": []}
+{"id": "d5", "text": "DoorDash: Your driver can't find the entrance. Please call them now.", "truth": {"category": "delivery", "action_today": true}, "tags": []}
+{"id": "d6", "text": "Target: Your order has shipped and will arrive Oct 20.", "truth": {"category": "delivery", "action_today": false}, "tags": []}
+{"id": "d7", "text": "Wayfair: Your sofa delivery is scheduled for tomorrow between 8am-12pm. Someone 18+ must be present.", "truth": {"category": "delivery", "action_today": true}, "tags": []}
+{"id": "d8", "text": "Etsy: Your order from CandleCraftCo is on its way.", "truth": {"category": "delivery", "action_today": false}, "tags": []}
+{"id": "d9", "text": "DHL: Your international package cleared customs and is out for delivery.", "truth": {"category": "delivery", "action_today": false}, "tags": []}
+{"id": "c1", "text": "Ms. Alvarez (2nd grade): Reminder that the field trip permission slip is due tomorrow.", "truth": {"category": "school", "action_today": true}, "tags": []}
+{"id": "c2", "text": "Lincoln Elementary: Picture day is next Friday. Order forms went home in backpacks.", "truth": {"category": "school", "action_today": false}, "tags": []}
+{"id": "c3", "text": "Lincoln Elementary nurse: Emma has a fever of 101. Please pick her up as soon as possible.", "truth": {"category": "school", "action_today": true}, "tags": []}
+{"id": "c4", "text": "Lincoln PTA: Join us for the fall fundraiser bake sale on Oct 25!", "truth": {"category": "school", "action_today": false}, "tags": []}
+{"id": "c5", "text": "Mr. Chen (math): Noah did great on his fractions quiz this week!", "truth": {"category": "school", "action_today": false}, "tags": []}
+{"id": "c6", "text": "Lincoln Elementary: Early dismissal today at 12:30pm for parent-teacher conferences.", "truth": {"category": "school", "action_today": true}, "tags": []}
+{"id": "c7", "text": "Oakland Unified: Report cards will be available in the parent portal on Nov 8.", "truth": {"category": "school", "action_today": false}, "tags": []}
+{"id": "c8", "text": "Ms. Alvarez: Could you send in a snack for the class party on Oct 31?", "truth": {"category": "school", "action_today": false}, "tags": []}
+{"id": "c9", "text": "Lincoln Elementary: Emma's lunch account balance is low ($2.10). Please add funds.", "truth": {"category": "school", "action_today": false}, "tags": ["tricky"]}
+{"id": "t1", "text": "PG&E ALERT: your account is suspended. Pay $19.99 now at pge-billing-secure.xyz to restore power", "truth": {"category": "spam", "action_today": false}, "tags": ["tricky", "phishing"]}
+{"id": "t2", "text": "USPS: Your package is on hold due to an incomplete address. Update here: usps-redelivery.info", "truth": {"category": "spam", "action_today": false}, "tags": ["tricky", "phishing"]}
+{"id": "t3", "text": "Mom: hey hun no rush but grandpa fell, we're at the ER, call when you can", "truth": {"category": "family", "action_today": true}, "tags": ["tricky"]}
+{"id": "t4", "text": "Uncle Joe: CONGRATS!!! you won... the family fantasy football league lol, trophy is at my place", "truth": {"category": "family", "action_today": false}, "tags": ["tricky"]}
+{"id": "t5", "text": "Dad: reminder your dentist appt is tomorrow at 9, don't forget", "truth": {"category": "family", "action_today": true}, "tags": ["tricky"]}
+{"id": "t6", "text": "Hi from Sunny Solar! Just a friendly note that your lease payment of $129 bounced - please pay by end of day.", "truth": {"category": "bills", "action_today": true}, "tags": ["tricky"]}
+{"id": "t7", "text": "Lincoln Elementary: WIN BIG at our library raffle! Tickets $5, all proceeds support the school library.", "truth": {"category": "school", "action_today": false}, "tags": ["tricky"]}
+{"id": "t8", "text": "Amazon: A driver reported your package as damaged. We're sending a replacement, no action needed.", "truth": {"category": "delivery", "action_today": false}, "tags": ["tricky"]}
+{"id": "t9", "text": "Bright Smile Dental: No need to confirm, your appointment next week is all set.", "truth": {"category": "appointment", "action_today": false}, "tags": ["tricky"]}
+{"id": "t10", "text": "Ms. Alvarez: The permission slip deadline was extended to next Friday, no rush!", "truth": {"category": "school", "action_today": false}, "tags": ["tricky"]}
+{"id": "t11", "text": "Netflix: Your payment method was declined. Update your payment details today to keep watching.", "truth": {"category": "bills", "action_today": true}, "tags": ["tricky"]}
+{"id": "t12", "text": "Sis: can you venmo me $40 for mom's gift today? I'm ordering it tonight", "truth": {"category": "family", "action_today": true}, "tags": ["tricky"]}
