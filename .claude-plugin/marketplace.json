@@ -7,7 +7,7 @@
       "name": "jev",
       "source": "./",
       "description": "Fast typed decisions with Jev: sort, route, triage, score and calibrate; optional prompt router and permission gate.",
-      "version": "0.1.2"
+      "version": "0.1.3"
     }
   ]
 }
