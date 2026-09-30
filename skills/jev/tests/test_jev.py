@@ -28,7 +28,9 @@ class Fake(BaseHTTPRequestHandler):
 
     def do_POST(self):  # noqa: N802
         body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
-        req = {"path": self.path, "auth": self.headers.get("Authorization"), "body": body}
+        req = {"path": self.path, "auth": self.headers.get("Authorization"), "body": body,
+               "origin": {h: self.headers[h] for h in ("X-Decision-Source", "X-Decision-Person",
+                                                       "X-Decision-Role") if self.headers.get(h)}}
         Fake.requests.append(req)
         nxt = Fake.responses.pop(0) if Fake.responses else (500, {"error": "no response queued"})
         status, payload = nxt(req) if callable(nxt) else nxt
@@ -127,6 +129,39 @@ class TestDecide(Base):
     def test_sureness(self):
         self.assertAlmostEqual(jev.sureness({"type": "noul", "noul": 0.2}), 0.8)
         self.assertEqual(jev.sureness({"type": "choice", "confidence": 0.7}), 0.7)
+
+
+class TestDecisionOrigin(Base):
+    """X-Decision-* headers go to a decision-broker and never to a model provider."""
+    ANSWER = {"fact": {"type": "noul", "noul": 0.9}}
+    Q = {"fact": {"type": "noul", "instructions": "a fact"}}
+
+    def creds(self, provider):
+        return {"key": "k", "base": os.environ["JEV_BASE_URL"], "provider": provider, "source": "test"}
+
+    def test_broker_gets_the_origin(self):
+        Fake.responses.append(ok(self.ANSWER))
+        with mock.patch.object(jev, "_bearer", return_value="jwt"):
+            jev.decide({"m": "hi"}, self.Q, creds=self.creds("broker"),
+                       origin={"source": "user", "person": "miranda", "role": "adult", "other": "x"})
+        self.assertEqual(Fake.requests[0]["origin"], {"X-Decision-Source": "user",
+                                                      "X-Decision-Person": "miranda", "X-Decision-Role": "adult"})
+
+    def test_a_provider_never_sees_it(self):
+        for provider in ("openrouter", "typesafe"):
+            Fake.requests.clear()
+            Fake.responses.append(ok(self.ANSWER))
+            jev.decide({"m": "hi"}, self.Q, creds=self.creds(provider),
+                       origin={"source": "user", "person": "miranda", "role": "adult"})
+            self.assertEqual(Fake.requests[0]["origin"], {}, provider)
+
+    def test_no_origin_and_empty_values_send_nothing(self):
+        Fake.responses += [ok(self.ANSWER), ok(self.ANSWER)]
+        with mock.patch.object(jev, "_bearer", return_value="jwt"):
+            jev.decide({"m": "a"}, self.Q, creds=self.creds("broker"))
+            jev.decide({"m": "b"}, self.Q, creds=self.creds("broker"), origin={"source": "canary", "person": None})
+        self.assertEqual(Fake.requests[0]["origin"], {})
+        self.assertEqual(Fake.requests[1]["origin"], {"X-Decision-Source": "canary"})
 
 
 class TestRouterHook(Base):

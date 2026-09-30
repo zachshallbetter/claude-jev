@@ -152,12 +152,27 @@ def resolve_credentials() -> dict[str, str]:
                    "or: security add-generic-password -U -a \"$USER\" -s jev-openrouter -w)")
 
 
+ORIGIN_HEADERS = {"source": "X-Decision-Source", "person": "X-Decision-Person", "role": "X-Decision-Role"}
+
+
+def origin_headers(origin: dict[str, str] | None, creds: dict[str, str]) -> dict[str, str]:
+    """X-Decision-* headers for a decision-broker; nothing at all for a model provider, so a
+    household member's id never leaves for OpenRouter or TypeSafe."""
+    if not origin or creds.get("provider") != "broker":
+        return {}
+    return {ORIGIN_HEADERS[k]: str(v) for k, v in origin.items() if k in ORIGIN_HEADERS and v}
+
+
 def decide(state: Any, questions: dict[str, Any], *, model: str | None = None,
            timeout: float = 15.0, retries: int = 2, source: str = "api",
-           creds: dict[str, str] | None = None) -> dict[str, Any]:
+           creds: dict[str, str] | None = None,
+           origin: dict[str, str] | None = None) -> dict[str, Any]:
     """One System One call. Returns the API response plus `_meta` {latency_ms, cost_usd, ...}.
 
     Retries 429/5xx/529 with exponential backoff. Raises JevError on anything else.
+    `origin` ({"source", "person", "role"}: e.g. user / miranda / adult, or canary) is sent to a
+    decision-broker as X-Decision-* headers so its readouts can tell traffic apart; it is never
+    sent to a model provider.
     """
     if not questions:
         raise JevError("questions must be a non-empty map")
@@ -173,6 +188,7 @@ def decide(state: Any, questions: dict[str, Any], *, model: str | None = None,
             "Authorization": f"Bearer {_bearer(creds)}",
             "Content-Type": "application/json",
             "User-Agent": f"jev-skill/{VERSION}",
+            **origin_headers(origin, creds),
         })
         try:
             with urllib.request.urlopen(req, timeout=timeout) as resp:

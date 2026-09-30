@@ -129,7 +129,9 @@ End with one line in this form:
    `JEV_API_KEY` (+ `JEV_BASE_URL`). Off macOS (Linux, cloud sessions) use one of those.
    **Broker mode** keeps the provider key off the machine entirely: `JEV_AUTH=coordinator`,
    `JEV_BASE_URL` = a decision-broker, `JEV_COORDINATOR_KEY_FILE` = an Ed25519 private-key PEM
-   whose public half the broker allowlists, and optionally `JEV_COORDINATOR_ID`.
+   whose public half the broker allowlists, and optionally `JEV_COORDINATOR_ID`. In code,
+   `decide(..., origin={"source": "user", "person": "miranda", "role": "adult"})` tells a broker
+   where a decision came from (it is never sent to a model provider).
 3. `python3 $J test`. This makes one real call and shows the answers, latency and cost.
 
 ## Level 1: the prompt router (`/jev on`)
