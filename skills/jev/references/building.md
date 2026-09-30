@@ -32,6 +32,25 @@ Authorization: Bearer <key>
   field and the reference data in others, and refer to fields by name in backticks, e.g.
   `` "Is the resume for the same person as `potential_duplicate`?" ``.
 
+## Through a decision-broker
+
+When a service shouldn't hold a Jev key, send its decisions through the fleet's
+decision-broker instead. It speaks the same wire format, so only the base URL and the bearer
+change:
+
+- `JEV_AUTH=coordinator`, `JEV_BASE_URL=<broker>`, `JEV_COORDINATOR_KEY_FILE=<Ed25519 private
+  PEM>` (its public half must be in the broker's allowlist), optional `JEV_COORDINATOR_ID`.
+- The bearer is a short-lived EdDSA coordinator JWT (`type: "coordinator"`, optional
+  `aud: "decision"`), minted per call.
+- Responses gain a `broker` block `{caller, cached, latency_ms, cost_usd}`. A cache hit costs 0.
+- Say where a decision came from with `decide(..., origin={"source": "user", "person": "<id>",
+  "role": "adult"})`. It becomes `X-Decision-*` headers, sent to a broker only.
+- Fail open on any error: the broker has budgets, and a client must never fall back to a
+  direct provider call.
+
+Definition: the decision-broker's `ACTIONS.md`, `RECEIPTS.md` and `FAILURE_SEMANTICS.md`
+(AcmeProductCo/brokers), and the `decision-contract` crate (AcmeProductCo/contracts).
+
 ## Question design (most accuracy is won or lost here)
 
 1. **It reads literally.** Write the exact condition. Put boundary cases in the criteria.

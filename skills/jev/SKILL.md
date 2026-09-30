@@ -257,13 +257,22 @@ For production code in a project, prefer the official SDK (`pip install typesafe
 ## On titan (household agent)
 
 `titan-node/scripts/jev_client.py` is a copy of `scripts/jev.py`. `doctor` compares the two
-(ignoring the header docstring) and reports DRIFT, so re-copy it whenever you change this file.
+(ignoring the header docstring) and reports DRIFT, so re-copy it whenever the call path changes.
 The agent gets:
+- **Turn gates** (`AGENT_JEV_TURN_GATES=1`): fact saving (`lasting_fact`), skill choice,
+  best file pick, and proactive triage.
+- **Jev turn router** for `AGENT_TOOL_BRAIN=auto` (`AGENT_JEV_ROUTER=1`): Jev picks local
+  Qwen versus Gemini, and only a confident "local" skips Gemini. Recent tool use still forces
+  Gemini, and a miss or error falls back to the regex classifier.
 - **`jev_decide` tool**: state plus a questions JSON map, returns a compact typed summary.
-  The agent uses it for triage and for picking among candidates.
-- **Jev turn router** for `AGENT_TOOL_BRAIN=auto` (`AGENT_JEV_ROUTER=1`): Jev picks
-  local Qwen versus Gemini, and only a confident "local" skips Gemini. Recent tool use
-  still forces Gemini, and a miss or error falls back to the regex classifier.
-- **Key:** `OPENROUTER_API_KEY='…'` (single-quoted) in `agent.env` on the host. Put it
-  there over SSH yourself. Never inline it in a command. Follow the `titan-ops` skill:
-  preflight before restarting the agent.
+- **Through the decision-broker** (`127.0.0.1:8030` on titan), never directly: agent.env sets
+  `JEV_AUTH='coordinator'`, `JEV_BASE_URL='http://127.0.0.1:8030'`,
+  `JEV_COORDINATOR_KEY_FILE` and `JEV_COORDINATOR_ID='titan-agent'`. The broker holds the
+  provider key. Every call carries its origin (`lib.jev_origin()`: the turn's source, and the
+  household member's id and role from titan's pairing), which the broker records.
+- **Shadow trial:** the broker also asks a local Decider-2B each of the agent's decisions and
+  logs the agreement (`GET /broker/shadow`); nothing is acted on from it.
+
+Where it's defined: the decision-broker's doc set (AcmeProductCo/brokers `decision-broker/`),
+its typed contract `decision-contract` (AcmeProductCo/contracts), and titan's
+`docs/runbook.md`. For any change on the host, follow the `titan-ops` skill: preflight first.
