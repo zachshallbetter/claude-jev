@@ -12,6 +12,8 @@ Credentials (first hit wins; the key is never printed or logged):
   3. env OPENROUTER_API_KEY (OpenRouter)
   4. macOS Keychain item `jev-openrouter`, then `jev-typesafe`
      (store with: security add-generic-password -U -a "$USER" -s jev-openrouter -w)
+  A JEV_BASE_URL on localhost or a private address with no JEV_API_KEY is a local System One
+  server (a Drex on the box): no key is sent, and its calls cost $0 unless it states a cost.
 
 State lives in $JEV_HOME (default $CLAUDE_CONFIG_DIR/jev, i.e. ~/.claude/jev): state.json (toggles) and usage.jsonl
 (one line per call: latency, tokens, cost — never the content sent).
@@ -40,7 +42,8 @@ VERSION = "1.0.0"
 OPENROUTER_BASE = "https://openrouter.ai/api"
 TYPESAFE_BASE = "https://api.typesafe.ai"
 # Pinned per provider so thresholds stay calibrated to one model version.
-DEFAULT_MODEL = {"openrouter": "typesafe/jev-1.13", "typesafe": "jev-1.13.0", "broker": "typesafe/jev-1.13"}
+DEFAULT_MODEL = {"openrouter": "typesafe/jev-1.13", "typesafe": "jev-1.13.0", "broker": "typesafe/jev-1.13",
+                 "local": "drex-v1.5"}   # a local server (#1434): JEV_MODEL names its model when it isn't Drex
 PRICE_PER_INPUT_TOKEN = 0.042 / 1_000_000   # output is free
 # Below this confidence an answer goes to review (Claude or a person decides). 0.75 came from the
 # 2026-09-25 household calibration (0.6 let half the mistakes through). The saved setting in
@@ -78,7 +81,24 @@ class JevError(RuntimeError):
 # Credentials + transport
 # ---------------------------------------------------------------------------
 
+def _is_local(base: str) -> bool:
+    """A System One server on this machine or the LAN (a local Drex, #1434): loopback or a private address, never a
+    hosted provider. Such a base needs no key and is never charged Jev's per-token price."""
+    import ipaddress
+    import urllib.parse
+    host = (urllib.parse.urlparse(base).hostname or "").strip("[]").lower()
+    if host in ("localhost",) or host.endswith(".localhost"):
+        return True
+    try:
+        ip = ipaddress.ip_address(host)
+    except ValueError:
+        return False
+    return ip.is_loopback or ip.is_private
+
+
 def _provider_for(base: str) -> str:
+    if _is_local(base):
+        return "local"
     return "openrouter" if "openrouter.ai" in base else "typesafe"
 
 
@@ -132,6 +152,10 @@ def resolve_credentials() -> dict[str, str]:
             raise JevError("JEV_AUTH=coordinator needs JEV_BASE_URL (the decision-broker) and JEV_COORDINATOR_KEY_FILE")
         return {"key": "", "base": base, "provider": "broker", "source": f"coordinator:{key_file}",
                 "key_file": key_file, "sub": os.environ.get("JEV_COORDINATOR_ID", "jev-client")}
+    local = os.environ.get("JEV_BASE_URL", "").strip().rstrip("/")
+    if local and _is_local(local) and not os.environ.get("JEV_API_KEY", "").strip():
+        # a local System One server (#1434: Drex on The Box): no key, and no cloud key is ever sent to it
+        return {"key": "", "base": local, "provider": "local", "source": "local:JEV_BASE_URL"}
     if os.environ.get("JEV_API_KEY", "").strip():
         base = os.environ.get("JEV_BASE_URL", OPENROUTER_BASE).rstrip("/")
         return {"key": os.environ["JEV_API_KEY"].strip(), "base": base,
@@ -170,7 +194,7 @@ def decide(state: Any, questions: dict[str, Any], *, model: str | None = None,
     """One System One call. Returns the API response plus `_meta` {latency_ms, cost_usd, ...}.
 
     Retries 429/5xx/529 with exponential backoff. Raises JevError on anything else.
-    `origin` ({"source", "person", "role"}: e.g. user / miranda / adult, or canary) is sent to a
+    `origin` ({"source", "person", "role"}: e.g. user / robin / adult, or canary) is sent to a
     decision-broker as X-Decision-* headers so its readouts can tell traffic apart; it is never
     sent to a model provider.
     """
@@ -184,8 +208,9 @@ def decide(state: Any, questions: dict[str, Any], *, model: str | None = None,
     t0 = time.monotonic()
     last: JevError | None = None
     for attempt in range(retries + 1):
+        bearer = _bearer(creds)   # per attempt: a coordinator JWT is fresh each time; "" for a keyless local server
         req = urllib.request.Request(url, data=body, method="POST", headers={
-            "Authorization": f"Bearer {_bearer(creds)}",
+            **({"Authorization": f"Bearer {bearer}"} if bearer else {}),   # a local server may take none (#1434)
             "Content-Type": "application/json",
             "User-Agent": f"jev-skill/{VERSION}",
             **origin_headers(origin, creds),
@@ -211,8 +236,8 @@ def decide(state: Any, questions: dict[str, Any], *, model: str | None = None,
         raise JevError(f"malformed response: {json.dumps(data)[:300]}")
     usage = data.get("usage") or {}
     cost = usage.get("cost")
-    if cost is None:
-        cost = (usage.get("input_tokens") or 0) * PRICE_PER_INPUT_TOKEN
+    if cost is None:   # a local server runs on our own hardware: $0, never Jev's hosted price (#1434)
+        cost = 0.0 if creds["provider"] == "local" else (usage.get("input_tokens") or 0) * PRICE_PER_INPUT_TOKEN
     meta = {"latency_ms": _ms(t0), "cost_usd": float(cost), "provider": creds["provider"],
             "model": data.get("model", model), "input_tokens": usage.get("input_tokens")}
     data["_meta"] = meta
