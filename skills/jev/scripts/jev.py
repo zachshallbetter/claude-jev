@@ -18,8 +18,8 @@ Credentials (first hit wins; the key is never printed or logged):
 State lives in $JEV_HOME (default $CLAUDE_CONFIG_DIR/jev, i.e. ~/.claude/jev): state.json (toggles) and usage.jsonl
 (one line per call: latency, tokens, cost — never the content sent).
 
-This file is also the library the titan household agent imports (scripts/jev_client.py
-in titan-node is a copy — keep them in sync).
+This file is self-contained so it can be copied into another program as a library. Point
+JEV_EMBEDDED_COPY at such a copy and `doctor` reports when the two drift apart.
 """
 from __future__ import annotations
 
@@ -747,16 +747,21 @@ def decision_line(counts: dict[str, int]) -> str:
 
 
 # ---------------------------------------------------------------------------
-# titan copy drift (scripts/jev_client.py in titan-node is a copy of this file)
+# embedded copy drift (a program may keep a copy of this file as its client library)
 # ---------------------------------------------------------------------------
 
 def _without_docstring(text: str) -> str:
     return re.sub(r'\A#![^\n]*\n"""[\s\S]*?"""\n', "", text, count=1)
 
 
-def titan_copy_status() -> tuple[str, str]:
-    """('in sync'|'DRIFT'|'missing', path) comparing everything after the module docstring."""
-    path = Path(os.environ.get("JEV_TITAN_COPY", Path.home() / "Projects" / "titan-node" / "scripts" / "jev_client.py"))
+def embedded_copy_status() -> tuple[str, str]:
+    """('in sync'|'DRIFT'|'missing'|'unset', path) comparing everything after the module docstring.
+
+    The copy is named by JEV_EMBEDDED_COPY, or by `embedded_copy` in the state file."""
+    configured = os.environ.get("JEV_EMBEDDED_COPY") or load_state().get("embedded_copy") or ""
+    if not configured:
+        return "unset", ""
+    path = Path(configured).expanduser()
     if not path.exists():
         return "missing", str(path)
     same = _without_docstring(path.read_text()) == _without_docstring(Path(__file__).read_text())
@@ -1065,7 +1070,7 @@ def _presets() -> dict[str, Path]:
 
 
 def _fmt_usage(recs: list[dict[str, Any]]) -> str:
-    calls = [r for r in recs if r.get("source") in ("router", "sort", "perms", "api", "cli", "test", "titan-agent", "calibrate")]
+    calls = [r for r in recs if r.get("source") in ("router", "sort", "perms", "api", "cli", "test", "embedded", "calibrate")]
     ok = [r for r in calls if r.get("ok")]
     cost = sum(float(r.get("cost") or 0) for r in ok)
     lat = sorted(r["latency_ms"] for r in ok if "latency_ms" in r)
@@ -1154,7 +1159,7 @@ def main(argv: list[str] | None = None) -> int:
     for name in ("on", "off"):
         p = sub.add_parser(name, help=f"turn a switch {name} (default: router)")
         p.add_argument("what", nargs="?", default="router", choices=["router", "skills", "perms"])
-    p = sub.add_parser("set", help="set threshold / perms_threshold / tiers.<tier>")
+    p = sub.add_parser("set", help="set threshold / perms_threshold / tiers.<tier> / embedded_copy")
     p.add_argument("key")
     p.add_argument("value")
 
@@ -1400,6 +1405,8 @@ def main(argv: list[str] | None = None) -> int:
                 st["tiers"][a.key.split(".", 1)[1]] = a.value
             elif a.key in ("threshold", "perms_threshold"):
                 st[a.key] = float(a.value)
+            elif a.key == "embedded_copy":
+                st[a.key] = str(Path(a.value).expanduser())
             else:
                 print(f"unknown key {a.key}", file=sys.stderr)
                 return 2
@@ -1456,11 +1463,12 @@ def main(argv: list[str] | None = None) -> int:
                 ok = (agent_dir / f"jev-{m}.md").exists()
                 problems += not ok
                 print(f"{'✓' if ok else '✗'} agent jev-{m}")
-            status, path = titan_copy_status()
+            status, path = embedded_copy_status()
             if status == "DRIFT":
                 problems += 1
-            print(f"{'✗' if status == 'DRIFT' else '✓' if status == 'in sync' else '·'} titan copy {status}: {path}"
-                  + (" (re-copy: cp this file over it, keep its header docstring)" if status == "DRIFT" else ""))
+            if status != "unset":
+                print(f"{'✗' if status == 'DRIFT' else '✓' if status == 'in sync' else '·'} embedded copy {status}: {path}"
+                      + (" (re-copy this file over it, keeping its header docstring)" if status == "DRIFT" else ""))
             print(f"  review threshold: {load_state().get('threshold', REVIEW_THRESHOLD)}")
             print(f"  skills in router catalog: {len(skill_catalog(os.getcwd()))}")
             return 1 if problems else 0

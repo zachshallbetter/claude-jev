@@ -146,16 +146,16 @@ class TestDecisionOrigin(Base):
         Fake.responses.append(ok(self.ANSWER))
         with mock.patch.object(jev, "_bearer", return_value="jwt"):
             jev.decide({"m": "hi"}, self.Q, creds=self.creds("broker"),
-                       origin={"source": "user", "person": "miranda", "role": "adult", "other": "x"})
+                       origin={"source": "user", "person": "robin", "role": "adult", "other": "x"})
         self.assertEqual(Fake.requests[0]["origin"], {"X-Decision-Source": "user",
-                                                      "X-Decision-Person": "miranda", "X-Decision-Role": "adult"})
+                                                      "X-Decision-Person": "robin", "X-Decision-Role": "adult"})
 
     def test_a_provider_never_sees_it(self):
         for provider in ("openrouter", "typesafe"):
             Fake.requests.clear()
             Fake.responses.append(ok(self.ANSWER))
             jev.decide({"m": "hi"}, self.Q, creds=self.creds(provider),
-                       origin={"source": "user", "person": "miranda", "role": "adult"})
+                       origin={"source": "user", "person": "robin", "role": "adult"})
             self.assertEqual(Fake.requests[0]["origin"], {}, provider)
 
     def test_no_origin_and_empty_values_send_nothing(self):
@@ -199,27 +199,27 @@ class TestRouterHook(Base):
         self.assertEqual(self.run_hook(jev.hook_prompt, {"prompt": "write a proposal for the new onboarding flow"}), "")
 
     def test_skill_catalog_and_skill_note(self):
-        sk = self.claude / "skills" / "titan-ops"
+        sk = self.claude / "skills" / "ops-runbook"
         sk.mkdir()
-        (sk / "SKILL.md").write_text("---\nname: titan-ops\ndescription: >-\n  Operate titan-node, the GPU host.\n"
+        (sk / "SKILL.md").write_text("---\nname: ops-runbook\ndescription: >-\n  Operate the GPU host.\n"
                                      "  More detail here.\n---\nbody\n")
         off = self.claude / "skills" / "medium"
         off.mkdir()
         (off / "SKILL.md").write_text("---\nname: medium\ndescription: Post to Medium.\n---\n")
         (self.claude / "settings.json").write_text(json.dumps({"skillOverrides": {"medium": "off"}}))
         cat = jev.skill_catalog()
-        self.assertEqual(cat, {"titan-ops": "Operate titan-node, the GPU host."})
+        self.assertEqual(cat, {"ops-runbook": "Operate the GPU host."})
         jev.save_state({**jev.load_state(), "router": True})
-        Fake.responses.append(ok(router_answers("everyday", 0.9, skill="titan-ops", sconf=0.8)))
+        Fake.responses.append(ok(router_answers("everyday", 0.9, skill="ops-runbook", sconf=0.8)))
         out = self.run_hook(jev.hook_prompt, {"prompt": "is the fleet healthy on the gpu box right now?"})
-        self.assertIn("`titan-ops`", out)
+        self.assertIn("`ops-runbook`", out)
         self.assertIn("none", Fake.requests[0]["body"]["questions"]["skill"]["criteria"])
 
 
 class TestPermissionGate(Base):
     RISKY = ["rm -rf build", "rm file.txt", "git push origin main", "git status && git push", "sudo ls",
              "/usr/bin/sudo ls", "FOO=1 sudo ls", "cat .env", "echo $(whoami)", "ls > out.txt",
-             "npx wrangler deploy", "ssh titan uptime", "railway up", "bash -c 'ls'", ". ./x.sh",
+             "npx wrangler deploy", "ssh gpu-host uptime", "railway up", "bash -c 'ls'", ". ./x.sh",
              "curl -X POST https://x", "psql -c 'drop table x'", "python3 -c 'print(1)'",
              "git reset --hard HEAD~1", "launchctl unload x", "cat ~/.ssh/id_rsa", "kill -9 1",
              "git checkout -- src/file.ts", "git reset -q && git checkout -- .agents/lock.json 2>/dev/null",
@@ -505,14 +505,14 @@ class TestSortAndInstall(Base):
         with self.assertRaises(jev.JevError):
             jev.build_truth([{"id": "z", "kind": "app"}], {}, q, 0.75)
 
-    def test_titan_copy_drift(self):
+    def test_embedded_copy_drift(self):
         me = (jev.SKILL_DIR / "scripts" / "jev.py").read_text()
         copy = Path(TMP) / "jev_client.py"
         copy.write_text(me.replace('"""jev —', '"""jev —\n\nCOPY header note.', 1))
-        with mock.patch.dict(os.environ, {"JEV_TITAN_COPY": str(copy)}):
-            self.assertEqual(jev.titan_copy_status()[0], "in sync")
+        with mock.patch.dict(os.environ, {"JEV_EMBEDDED_COPY": str(copy)}):
+            self.assertEqual(jev.embedded_copy_status()[0], "in sync")
             copy.write_text(copy.read_text() + "\n# drift\n")
-            self.assertEqual(jev.titan_copy_status()[0], "DRIFT")
+            self.assertEqual(jev.embedded_copy_status()[0], "DRIFT")
 
     def test_presets_valid(self):
         for name, p in jev._presets().items():

@@ -1,7 +1,7 @@
 {
   "name": "jev",
   "displayName": "Jev",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Jev (TypeSafe's System One decision model) in Claude Code: fast typed decisions (choice / score / yes-no with calibrated confidence) for sorting, routing, triage, guardrails and calibration, plus an optional prompt router and permission gate.",
   "author": {
     "name": "Zach Shallbetter"
@@ -13,5 +13,8 @@
     "routing",
     "triage",
     "calibration"
-  ]
+  ],
+  "license": "MIT OR Apache-2.0",
+  "homepage": "https://github.com/zachshallbetter/claude-jev",
+  "repository": "https://github.com/zachshallbetter/claude-jev"
 }

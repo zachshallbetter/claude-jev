@@ -3,13 +3,13 @@
   "owner": {
     "name": "Zach Shallbetter"
   },
-  "description": "The jev plugin for Claude Code.",
+  "description": "Jev, the TypeSafe System One decision model, as a Claude Code plugin.",
   "plugins": [
     {
       "name": "jev",
       "source": "./",
       "description": "Fast typed decisions with Jev: sort, route, triage, score and calibrate; optional prompt router and permission gate.",
-      "version": "0.1.4"
+      "version": "0.1.5"
     }
   ]
 }

@@ -1,8 +1,7 @@
 ---
 name: jev
 description: >-
-  Jev (TypeSafe's "System One" decision model) wired into Claude Code and the titan
-  household agent: fast typed decisions (choice / score / noul with calibrated
+  Jev (TypeSafe's "System One" decision model) wired into Claude Code: fast typed decisions (choice / score / noul with calibrated
   confidence) for about $0.04 per million input tokens, in ~0.3 s. Use for /jev on|off|status|test|route|sort|ask|calibrate|perms|doctor,
   and whenever the user says "use Jev to sort / triage / classify / route / score these",
   wants a pile of text (emails, tickets, invoices, logs, passages) sorted or flagged, wants
@@ -57,10 +56,9 @@ J="${CLAUDE_SKILL_DIR}/scripts/jev.py"      # this skill's own folder; run as: p
 | `calibrate [set]` | See **Calibration**. Defaults to the bundled `household` set: dry run first, then `--yes --html <file>`, then publish the page. |
 | `perms on\|off` | `python3 $J on\|off perms`: the Bash permission gate (see below). Before turning it on, explain what it does and confirm. |
 | `skills on\|off` | Turns skill suggestions inside the router on or off. |
-| `set <key> <val>` | `threshold`, `perms_threshold`, `tiers.<tier> <model>` |
+| `set <key> <val>` | `threshold`, `perms_threshold`, `tiers.<tier> <model>`, `embedded_copy <path>` |
 | `doctor` | `python3 $J doctor`: key, hooks and agents, checked offline. |
 | `install` / `uninstall` | Registers or removes the hooks and the four helper agents. Switches stay OFF. |
-| `titan …` | See **On titan**. |
 | *anything else* (e.g. "/jev on my Projects folder to…", "use Jev to sort these") | Follow **Free-form jobs** below. Don't improvise. |
 
 ## Free-form jobs: split the work before reaching for Jev
@@ -130,7 +128,7 @@ End with one line in this form:
    **Broker mode** keeps the provider key off the machine entirely: `JEV_AUTH=coordinator`,
    `JEV_BASE_URL` = a decision-broker, `JEV_COORDINATOR_KEY_FILE` = an Ed25519 private-key PEM
    whose public half the broker allowlists, and optionally `JEV_COORDINATOR_ID`. In code,
-   `decide(..., origin={"source": "user", "person": "miranda", "role": "adult"})` tells a broker
+   `decide(..., origin={"source": "user", "person": "robin", "role": "adult"})` tells a broker
    where a decision came from (it is never sent to a model provider).
 3. `python3 $J test`. This makes one real call and shows the answers, latency and cost.
 
@@ -254,25 +252,11 @@ from jev import decide, sureness, JevError   # decide(state, questions, timeout=
 For production code in a project, prefer the official SDK (`pip install typesafe-sdk`,
 `npm i @typesafe-ai/sdk`). Point it at OpenRouter with `TYPESAFE_BASE_URL=https://openrouter.ai/api`.
 
-## On titan (household agent)
+## Embedding the client in another program
 
-`titan-node/scripts/jev_client.py` is a copy of `scripts/jev.py`. `doctor` compares the two
-(ignoring the header docstring) and reports DRIFT, so re-copy it whenever the call path changes.
-The agent gets:
-- **Turn gates** (`AGENT_JEV_TURN_GATES=1`): fact saving (`lasting_fact`), skill choice,
-  best file pick, and proactive triage.
-- **Jev turn router** for `AGENT_TOOL_BRAIN=auto` (`AGENT_JEV_ROUTER=1`): Jev picks local
-  Qwen versus Gemini, and only a confident "local" skips Gemini. Recent tool use still forces
-  Gemini, and a miss or error falls back to the regex classifier.
-- **`jev_decide` tool**: state plus a questions JSON map, returns a compact typed summary.
-- **Through the decision-broker** (`127.0.0.1:8030` on titan), never directly: agent.env sets
-  `JEV_AUTH='coordinator'`, `JEV_BASE_URL='http://127.0.0.1:8030'`,
-  `JEV_COORDINATOR_KEY_FILE` and `JEV_COORDINATOR_ID='titan-agent'`. The broker holds the
-  provider key. Every call carries its origin (`lib.jev_origin()`: the turn's source, and the
-  household member's id and role from titan's pairing), which the broker records.
-- **Shadow trial:** the broker also asks a local Decider-2B each of the agent's decisions and
-  logs the agreement (`GET /broker/shadow`); nothing is acted on from it.
-
-Where it's defined: the decision-broker's doc set (AcmeProductCo/brokers `decision-broker/`),
-its typed contract `decision-contract` (AcmeProductCo/contracts), and titan's
-`docs/runbook.md`. For any change on the host, follow the `titan-ops` skill: preflight first.
+`scripts/jev.py` is one stdlib-only file, so a program can keep a copy as its client library
+and import `decide`, `sureness` and `JevError` from it. If you do, set `JEV_EMBEDDED_COPY` to
+that copy's path (or `set embedded_copy <path>`): `doctor` compares the two below the header
+docstring and reports DRIFT, so re-copy whenever the call path changes. Through a broker
+(`JEV_AUTH=coordinator`) the copy never holds a provider key, and `decide(..., origin=...)`
+tells the broker where each decision came from; see `references/building.md`.

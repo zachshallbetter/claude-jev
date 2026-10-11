@@ -48,8 +48,7 @@ change:
 - Fail open on any error: the broker has budgets, and a client must never fall back to a
   direct provider call.
 
-Definition: the decision-broker's `ACTIONS.md`, `RECEIPTS.md` and `FAILURE_SEMANTICS.md`
-(AcmeProductCo/brokers), and the `decision-contract` crate (AcmeProductCo/contracts).
+A broker defines its own action, receipt and failure semantics; read them before relying on it.
 
 ## Question design (most accuracy is won or lost here)
 
@@ -91,7 +90,7 @@ Definition: the decision-broker's `ACTIONS.md`, `RECEIPTS.md` and `FAILURE_SEMAN
 |---|---|---|
 | **Confidence routing** | one Choice, then `if confidence ≥ t: act else: escalate` | ticket triage, moderation, anything with a human-review lane |
 | **Speculative fan-out** | ask every question you *might* need in one call, and let code ignore the ones that don't apply | intent → device → action trees (the smart-home demo). One parallel call is faster and cheaper than a sequence of calls. |
-| **Intent routing** | Choice over handlers + Noul "is this compound?" (split with an LLM, then re-route each part) | chat front doors, voice commands, the titan turn router |
+| **Intent routing** | Choice over handlers + Noul "is this compound?" (split with an LLM, then re-route each part) | chat front doors, voice commands, a chat turn router |
 | **Composite scoring** | several Scores/Nouls combined with weights you choose in code | lead scoring, risk scoring, prioritisation |
 | **Guardrails** | Nouls on an LLM's *draft* (policy violation? makes promises? leaks PII?) before it ships | outbound email and support replies |
 | **Citation / RAG check** | Noul per passage: "`passage` contains information that answers `question`" | drop irrelevant chunks before the answering model sees them. Also check each citation supports its claim. |

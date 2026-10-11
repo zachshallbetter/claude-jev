@@ -1,0 +1,31 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Manifests parse and agree on the version
+        run: |
+          python3 - <<'EOF'
+          import json
+          p = json.load(open(".claude-plugin/plugin.json"))
+          m = json.load(open(".claude-plugin/marketplace.json"))
+          assert p["version"] == m["plugins"][0]["version"], (p["version"], m["plugins"][0]["version"])
+          json.load(open("hooks/hooks.json"))
+          for f in ("presets/invoices.json", "presets/leads.json", "presets/projects.json", "presets/tickets.json",
+                    "calibration/household.spec.json"):
+              json.load(open("skills/jev/" + f))
+          print("manifests ok", p["version"])
+          EOF
+      - name: Tests
+        run: python3 -m unittest discover -s skills/jev/tests -v 2>&1 | tail -5
