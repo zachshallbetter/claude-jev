@@ -93,7 +93,10 @@ class Base(unittest.TestCase):
 class TestDecide(Base):
     def test_request_shape_and_meta(self):
         Fake.responses.append(ok({"u": {"type": "noul", "noul": 0.9}}, tokens=1000))
-        r = jev.decide("hello", {"u": {"type": "noul", "instructions": "urgent?"}})
+        # The fake server listens on loopback, which 0.1.4 treats as a local System One server.
+        # This test is about a hosted non-OpenRouter base, so present the loopback as hosted.
+        with mock.patch.object(jev, "_is_local", return_value=False):
+            r = jev.decide("hello", {"u": {"type": "noul", "instructions": "urgent?"}})
         req = Fake.requests[0]
         self.assertEqual(req["path"], "/v1/systemone")
         self.assertEqual(req["auth"], "Bearer test-key-123")
@@ -555,3 +558,25 @@ class CoordinatorModeTests(unittest.TestCase):
                 jev.resolve_credentials()
         with self.assertRaises(jev.JevError):
             jev._bearer({"provider": "broker", "key_file": "/nonexistent.pem", "sub": "x"})
+
+
+class TestLocalServer(Base):
+    """A JEV_BASE_URL on loopback or a private address with no JEV_API_KEY is a local System One
+    server (a Drex on the box): no bearer is sent, the model pins to drex-v1.5 unless JEV_MODEL says
+    otherwise, and a response that states no cost costs $0, never the hosted price."""
+
+    def test_is_local(self):
+        for base, want in (("http://127.0.0.1:8090", True), ("http://localhost:8090", True), ("http://[::1]:8090", True),
+                           ("http://192.168.1.20:8090", True), ("http://10.0.0.5", True), ("http://drex.localhost:8090", True),
+                           ("https://openrouter.ai/api", False), ("https://api.typesafe.ai", False), ("http://8.8.8.8", False)):
+            self.assertEqual(jev._is_local(base), want, base)
+
+    def test_keyless_local_call(self):
+        Fake.responses.append(ok({"u": {"type": "noul", "noul": 0.9}}, tokens=1000))
+        with mock.patch.dict(os.environ, {"JEV_API_KEY": ""}):
+            r = jev.decide("hello", {"u": {"type": "noul", "instructions": "urgent?"}})
+        req = Fake.requests[-1]
+        self.assertIsNone(req.get("auth"))
+        self.assertEqual(req["body"]["model"], "drex-v1.5")
+        self.assertEqual(r["_meta"]["provider"], "local")
+        self.assertEqual(r["_meta"]["cost_usd"], 0.0)
