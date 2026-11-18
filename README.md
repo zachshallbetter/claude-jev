@@ -65,6 +65,20 @@ Switches and the usage log live in `$JEV_HOME`, default `~/.claude/jev` (or unde
 
 `skills/jev/scripts/jev.py` is a single stdlib-only file so it can be copied into another program. If you keep a copy, point `JEV_EMBEDDED_COPY` at it and `/jev:jev doctor` reports when the two drift apart below the header docstring.
 
+## Repository map
+
+```text
+.claude-plugin/   plugin.json and marketplace.json: the manifests, with the version
+skills/jev/       the /jev skill: SKILL.md, scripts/ (jev.py is the client), presets/, calibration/, references/, tests/
+agents/           the jev-haiku, jev-sonnet, jev-opus and jev-fable helper agents the prompt router suggests
+hooks/            hooks.json: the prompt router and the permission gate
+.github/          CI workflow, issue and pull request templates
+```
+
+## Status and limitations
+
+Pre-1.0: the current release is listed in [CHANGELOG.md](CHANGELOG.md). The plugin needs Python 3.10+ and a configured Jev provider, broker or local server; without one it sends nothing. Jev returns typed decisions only and never generates text. The prompt router and the permission gate are off by default, and the gate can only approve a command, never deny one. Test coverage is the unit suite described under Development; it runs against a fake System One server, not a live provider.
+
 ## Development
 
 ```bash
@@ -72,7 +86,7 @@ python3 -m unittest discover -s skills/jev/tests
 claude plugin validate .
 ```
 
-The tests run a fake System One server on loopback; nothing reaches the network. CI runs the suite on Python 3.10 and 3.12 and validates the manifests. Releases are tagged `vX.Y.Z` and the version lives in both `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`. See [CHANGELOG.md](CHANGELOG.md) and [SECURITY.md](SECURITY.md).
+The tests run a fake System One server on loopback; nothing reaches the network. CI runs the suite on Python 3.12 and checks that the manifests agree on the version. Releases are tagged `vX.Y.Z` and the version lives in both `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`. See [CHANGELOG.md](CHANGELOG.md) and [SECURITY.md](SECURITY.md).
 
 ## License
 
