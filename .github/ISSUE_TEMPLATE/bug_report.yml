@@ -1,0 +1,42 @@
+name: Bug report
+description: The jev plugin isn't behaving as documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Thanks for the report. Remove any API key and any private text from what you paste. Report a security problem
+        privately, see SECURITY.md.
+  - type: input
+    id: version
+    attributes:
+      label: Plugin version
+      description: From `/plugin` or `.claude-plugin/plugin.json`.
+      placeholder: jev 0.1.5
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      description: What should have happened. Quote the README or SKILL.md section if relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened instead
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: The command or prompt, for example `/jev:jev sort ...`, and the output of `/jev:jev doctor`.
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      placeholder: Claude Code version, Python version, OS, provider (TypeSafe, OpenRouter, broker or local server)

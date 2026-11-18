@@ -2,7 +2,9 @@
 
 ## Reporting
 
-Report a vulnerability privately through GitHub's "Report a vulnerability" on this repository, or by email to the address on the maintainer's GitHub profile. Please do not open a public issue for anything that could expose a user's data or credentials. Expect an acknowledgement within a few days.
+Report a vulnerability privately through GitHub: [report a vulnerability](https://github.com/zachshallbetter/claude-jev/security/advisories/new). Please do not open a public issue for anything that could expose a user's data or credentials.
+
+This plugin has a solo maintainer. Reports are handled on a best-effort basis, with no response-time guarantee (no SLA).
 
 ## What this plugin can touch
 

@@ -1,0 +1,25 @@
+name: Feature request
+description: Propose a new preset, command or capability for the jev plugin.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Jev decides and Claude writes: the plugin returns typed decisions, never generated text. Describe the decision
+        you want made and what text it would need to see.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The decision or workflow you want
+      description: What are you trying to sort, route, score or gate?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How you imagine it
+      description: A preset, a command, an option, a pattern in building.md.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
